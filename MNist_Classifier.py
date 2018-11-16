@@ -104,4 +104,3 @@ for images, labels in test_loader:
     correct += (predicted == labels).sum()
 print('Accuracy of the model on the 10000 test images: %d %%'
       % (100*correct / total))
-
