@@ -8,7 +8,7 @@ import torchvision.transforms as transforms
 # Hyper Parameters
 input_size = 784
 num_classes = 10
-num_epochs = 5
+num_epochs = 10
 batch_size = 100
 learning_rate = 0.0015
 hidden_size = 78
@@ -46,16 +46,14 @@ class LogisticRegration(nn.Module):
 
         self.relu = nn.ReLU()
         self.leakyRelu = nn.LeakyReLU()
-        self.dropout = nn.Dropout(0.5)
 
     def forward(self, x):
 
         out = self.linear1(x)
-        out = self.leakyRelu(out)
+        out = self.relu(out)
         out = self.linear2(out)
-        out = self.leakyRelu(out)
+        out = self.relu(out)
         out = self.linear3(out)
-        out = self.dropout(out)
         out = Func.log_softmax(out)
         return out
 
