@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import torch
 from time import time
+import os
 
 import datasets
 import models
@@ -9,14 +10,16 @@ import utils
 
 #TODO: Run validation to the models
 #TODO: Train the best model on the whole training dataset
-#TODO: save model parameters
+
+save_dir = './saved models/'
 
 # Hyper Parameters
 input_size = 784
 num_classes = 10
-num_epochs = 50
+num_epochs = 100
 batch_size = [16, 32, 64, 128, 256]
 learning_rate = [1e-2, 3e-3, 1e-3, 3e-4, 1e-4]
+weight_decay = [1e-4, 3e-5 ,1e-5, 3e-6, 1e-6]
 
 # Datasets
 train_dataset = datasets.train_dataset()
@@ -37,7 +40,11 @@ test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                           shuffle=False)
 
 # Define the model of the network
-model = models.model1(input_size, num_classes)
+model = models.model3(input_size, num_classes)
+
+# Load weights if available
+if os.path.exists(os.path.join(save_dir, model.name)):
+    model.load_state_dict(torch.load(os.path.join(save_dir, model.name)))
 
 if torch.cuda.is_available():
     print('GPU detected - Enabling Cuda!')
@@ -50,9 +57,7 @@ criterion = model.loss
 
 # Optimizing method
 # TODO: Adjust lr and other parameters for validation
-optimizers = {'ADAM': torch.optim.Adam(model.parameters(), lr=1e-4, weight_decay=1e-5),
-             'SGD': torch.optim.SGD(model.parameters(), lr=1e-4, momentum=0.9)}
-optimizer = optimizers['ADAM']
+optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate[4], weight_decay=weight_decay[2])
 
 print('Model\'s number of parameters = %d'
       %(sum(p.numel() for p in model.parameters())))
@@ -157,6 +162,9 @@ for images, labels in test_loader:
     correct += (predicted == labels).sum()
 print('Accuracy of the model on the 10000 test images: %d %%'
       % (100*correct / total))
+
+# Save model weights
+torch.save(model.state_dict(), os.path.join(save_dir, model.name))
 
 # Export the results to .npy file
 results = {'Name': model.name, 'Train loss': train_loss_log, 'Validation loss': validation_loss_log,
