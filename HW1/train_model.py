@@ -8,43 +8,25 @@ import datasets
 import models
 import utils
 
-#TODO: Run validation to the models
-#TODO: Train the best model on the whole training dataset
-
 save_dir = './saved models/'
 
 # Hyper Parameters
 input_size = 784
 num_classes = 10
 num_epochs = 100
-batch_size = [16, 32, 64, 128, 256]
-learning_rate = [1e-2, 3e-3, 1e-3, 3e-4, 1e-4]
-weight_decay = [1e-4, 3e-5 ,1e-5, 3e-6, 1e-6]
+
+batch_size = [32, 64, 128]
+learning_rate = [1e-2, 1e-3, 1e-4]
+weight_decay = [1e-4,1e-5, 1e-6]
 
 # Datasets
 train_dataset = datasets.train_dataset()
 validation_dataset = datasets.validation_dataset()
-test_dataset = datasets.test_dataset()
 
-# Dataset Loader (Input Pipeline)
-train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
-                                           batch_size=batch_size[3],
-                                           shuffle=True)
-
-validation_loader = torch.utils.data.DataLoader(dataset=validation_dataset,
-                                                batch_size=batch_size[3],
-                                                shuffle=False)
-
-test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
-                                          batch_size=batch_size[3],
-                                          shuffle=False)
 
 # Define the model of the network
+#TODO: Change the model you wish to train!
 model = models.model3(input_size, num_classes)
-
-# Load weights if available
-if os.path.exists(os.path.join(save_dir, model.name)):
-    model.load_state_dict(torch.load(os.path.join(save_dir, model.name)))
 
 if torch.cuda.is_available():
     print('GPU detected - Enabling Cuda!')
@@ -52,125 +34,120 @@ if torch.cuda.is_available():
 else:
     print('No GPU detected!')
 
-# Loss function
-criterion = model.loss
+# Calculate number of model parameters
+print('Model: {}, number of parameters = {}'.format(model.name, sum(p.numel() for p in model.parameters())))
 
-# Optimizing method
-# TODO: Adjust lr and other parameters for validation
-optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate[4], weight_decay=weight_decay[2])
+for bs in batch_size:
 
-print('Model\'s number of parameters = %d'
-      %(sum(p.numel() for p in model.parameters())))
+    # Dataset Loader (Input Pipeline)
+    train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
+                                               batch_size=bs,
+                                               shuffle=True)
 
-# Train the Model
+    validation_loader = torch.utils.data.DataLoader(dataset=validation_dataset,
+                                                    batch_size=bs,
+                                                    shuffle=False)
+    for lr in learning_rate:
+        for wd in weight_decay:
 
-train_loss_log = np.zeros(num_epochs)
-train_error_log = np.zeros(num_epochs)
-validation_loss_log = np.zeros(num_epochs)
-validation_error_log = np.zeros(num_epochs)
+            run_name = "{}, lr={}, wd={}, bs={}".format(model.name, lr, wd, bs)
+            file_path = os.path.join(save_dir,run_name + '.pkl')
 
-for epoch in range(num_epochs):
+            criterion = model.loss
+            optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=wd)
 
-    start_time = time()
+            # Load model parameters and optimizer condition if available
+            if os.path.exists(file_path):
+                model, optimizer = utils.load_checkpoint(model, optimizer, file_path)
 
-    # Initialize errors and losses
-    epoch_train_loss = 0.0
-    epoch_train_error = 0.0
-    epoch_validation_loss = 0.0
-    epoch_validation_error = 0.0
+            # Train the Model
+            train_loss_log = np.zeros(num_epochs)
+            train_error_log = np.zeros(num_epochs)
+            validation_loss_log = np.zeros(num_epochs)
+            validation_error_log = np.zeros(num_epochs)
 
-    model.train()
-    for images, labels in train_loader:
-        if torch.cuda.is_available():
-            images = images.cuda()
-            labels = labels.cuda()
+            for epoch in range(num_epochs):
 
-        images = images.view(-1, 28*28)
+                start_time = time()
 
-        # Forward + Backward + Optimize
-        model.zero_grad()
-        outputs = model(images)
-        loss = criterion(outputs, labels)
-        loss.backward()
-        optimizer.step()
+                # Initialize errors and losses
+                epoch_train_loss = 0.0
+                epoch_train_error = 0.0
+                epoch_validation_loss = 0.0
+                epoch_validation_error = 0.0
 
-        # Accumulate loss
-        epoch_train_loss += outputs.shape[0] * loss.item()
+                model.train()
+                for images, labels in train_loader:
+                    if torch.cuda.is_available():
+                        images = images.cuda()
+                        labels = labels.cuda()
 
-        # Accumulate error
-        _, predictions = torch.max(outputs.data, 1)
-        epoch_train_error += (predictions != labels).sum()
+                    images = images.view(-1, 28 * 28)
 
-    # Mean error and loss
-    epoch_train_loss = epoch_train_loss / len(train_dataset)
-    epoch_train_error = epoch_train_error.type(torch.FloatTensor) / len(train_dataset) * 100
-    train_loss_log[epoch] = epoch_train_loss
-    train_error_log[epoch] = epoch_train_error
+                    # Forward + Backward + Optimize
+                    model.zero_grad()
+                    outputs = model(images)
+                    loss = criterion(outputs, labels)
+                    loss.backward()
+                    optimizer.step()
 
-    # Validation
-    model.eval()
-    for images, labels in validation_loader:
-        if torch.cuda.is_available():
-            images = images.cuda()
-            labels = labels.cuda()
+                    # Accumulate loss
+                    epoch_train_loss += outputs.shape[0] * loss.item()
 
-        images = images.view(-1, 28*28)
+                    # Accumulate error
+                    _, predictions = torch.max(outputs.data, 1)
+                    epoch_train_error += (predictions != labels).sum()
 
-        outputs = model(images)
-        loss = criterion(outputs, labels)
+                # Mean error and loss
+                epoch_train_loss = epoch_train_loss / len(train_dataset)
+                epoch_train_error = epoch_train_error.type(torch.FloatTensor) / len(train_dataset) * 100
+                train_loss_log[epoch] = epoch_train_loss
+                train_error_log[epoch] = epoch_train_error
 
-        # Accumulate loss
-        epoch_validation_loss += outputs.shape[0] * loss.item()
+                # Validation
+                model.eval()
+                for images, labels in validation_loader:
+                    if torch.cuda.is_available():
+                        images = images.cuda()
+                        labels = labels.cuda()
 
-        # Accumulate error
-        _, predictions = torch.max(outputs.data, 1)
-        epoch_validation_error += (predictions != labels).sum()
+                    images = images.view(-1, 28 * 28)
 
-    # Mean error and loss
-    epoch_validation_loss = epoch_validation_loss / len(validation_dataset)
-    epoch_validation_error = epoch_validation_error.type(torch.FloatTensor) / len(validation_dataset) * 100
-    validation_loss_log[epoch] = epoch_validation_loss
-    validation_error_log[epoch] = epoch_validation_error
+                    outputs = model(images)
+                    loss = criterion(outputs, labels)
 
-    duration = time() - start_time
+                    # Accumulate loss
+                    epoch_validation_loss += outputs.shape[0] * loss.item()
 
-    print('Epoch [{}/{}], Time: {:.1f} [s], Training speed: {:.2f} [images/s]'.format(epoch + 1, num_epochs, duration,
-                                                                                     len(train_dataset) / duration))
-    print('Train loss: {:.4f}, Train error: {:.2f}%'.format(epoch_train_loss, epoch_train_error))
-    print('Validation loss: {:.4f}, Validation error: {:.2f}%'.format(epoch_validation_loss, epoch_validation_error))
+                    # Accumulate error
+                    _, predictions = torch.max(outputs.data, 1)
+                    epoch_validation_error += (predictions != labels).sum()
 
+                # Mean error and loss
+                epoch_validation_loss = epoch_validation_loss / len(validation_dataset)
+                epoch_validation_error = epoch_validation_error.type(torch.FloatTensor) / len(validation_dataset) * 100
+                validation_loss_log[epoch] = epoch_validation_loss
+                validation_error_log[epoch] = epoch_validation_error
 
+                duration = time() - start_time
 
-# Test the Model
-correct = 0
-total = 0
+                print('Model: {}, Epoch [{}/{}], Time: {:.1f} [s], Training speed: {:.2f} [images/s]'.format(run_name, epoch+1 , num_epochs,
+                                                                                                             duration, len(train_dataset) / duration))
+                print('Train loss: {:.4f}, Train error: {:.2f}%'.format(epoch_train_loss, epoch_train_error))
+                print('Validation loss: {:.4f}, Validation error: {:.2f}%'.format(epoch_validation_loss,
+                                                                                  epoch_validation_error))
+            # Save model weights optimizer state and current epoch
+            print('Saving model - {}'.format(run_name))
+            utils.save_checkpoint(model, optimizer, file_path)
 
-for images, labels in test_loader:
-    # Convert the images and labels to cuda
-    if torch.cuda.is_available():
-        images = images.cuda()
-        labels = labels.cuda()
+            # Export the results to .npy file
+            results = {'Name': run_name, 'Train loss': train_loss_log, 'Validation loss': validation_loss_log,
+                       'Train error': train_error_log, 'Validation error': validation_error_log}
+            np.save('./results/' + run_name + '.npy', results)
 
-    images = images.view(-1,28*28)
+            # Plot the results
+            fig = utils.fig_plot(results, export_plot=True)
 
-    # Change the model to prediction mode
-    model.eval()
+            print('Done!')
 
-    outputs = model(images)
-    _, predicted = torch.max(outputs.data, 1)
-    total += labels.size(0)
-    correct += (predicted == labels).sum()
-print('Accuracy of the model on the 10000 test images: %d %%'
-      % (100*correct / total))
-
-# Save model weights
-torch.save(model.state_dict(), os.path.join(save_dir, model.name))
-
-# Export the results to .npy file
-results = {'Name': model.name, 'Train loss': train_loss_log, 'Validation loss': validation_loss_log,
-           'Train error': train_error_log, 'Validation error': validation_error_log}
-np.save('./results/' + model.name + '.npy', results)
-
-# Plot the results
-fig = utils.fig_plot(results, export_plot=True)
 plt.show()

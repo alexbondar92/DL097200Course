@@ -7,7 +7,7 @@ class model1(nn.Module):
     def __init__(self, input_size, num_classes):
         super(model1, self).__init__()
 
-        self.name = 'FC [78, 39, 10], wd=1e-5'
+        self.name = 'Model 1 - FC [78, 39, 10]'
         hidden_size = 78
 
         self.linear1 = nn.Linear(input_size, hidden_size)
@@ -30,7 +30,7 @@ class model2(nn.Module):
     def __init__(self, input_size, num_classes):
         super(model2, self).__init__()
 
-        self.name = 'FC [50x11, 10], wd=1e-5'
+        self.name = 'Model 2 - FC [50x11, 10]'
         hidden_size = 50
 
         self.linear1 = nn.Linear(input_size, hidden_size)
@@ -83,7 +83,7 @@ class model3(nn.Module):
     def __init__(self, input_size, num_classes):
         super(model3, self).__init__()
 
-        self.name = 'Split image-4, wd=1e-5'
+        self.name = 'Model 3 - Split image-4, FC [52, 26, 10, concat, 10]'
         hidden_size = 210
 
         self.linear1 = nn.Linear(input_size//4, hidden_size)
@@ -146,7 +146,7 @@ class model4(nn.Module):
     def __init__(self, input_size, num_classes):
             super(model4, self).__init__()
 
-            self.name = 'Model 4 - Split image-16, wd=1e-5 NoVal'
+            self.name = 'Model 4 - Split image-16'
             hidden_size = 36
 
             self.linear1 = nn.Linear(input_size // 16, hidden_size)
@@ -159,6 +159,7 @@ class model4(nn.Module):
             self.relu = nn.ReLU()
             self.dropout = nn.Dropout()
             self.loss = nn.NLLLoss()
+
     def forward(self, x):
             x = x.view(-1, 28, 28)
             x_u, x_d = torch.split(x, 14, dim=1)
@@ -294,7 +295,7 @@ class model5(nn.Module):
     def __init__(self, input_size, num_classes):
             super(model5, self).__init__()
 
-            self.name = 'Split image-16 11, wd=1e-5'
+            self.name = 'Model 5 - Split image-16 11'
             hidden_size = 120
 
             self.linear1 = nn.Linear(input_size // 16, hidden_size)
@@ -548,7 +549,7 @@ class model6(nn.Module):
     def __init__(self, input_size, num_classes):
             super(model6, self).__init__()
 
-            self.name = 'Model 6 Split image-16 36, wd=1e-5'
+            self.name = 'Model 6 - Split image-16 36'
             hidden_size = 18
 
             self.linear1 = nn.Linear(input_size // 16, hidden_size)
@@ -561,6 +562,7 @@ class model6(nn.Module):
             self.relu = nn.ReLU()
             self.dropout = nn.Dropout()
             self.loss = nn.NLLLoss()
+
     def forward(self, x):
             x = x.view(-1, 28, 28)
             x_u, x_d = torch.split(x, 14, dim=1)
@@ -667,7 +669,7 @@ class model7(nn.Module):
     def __init__(self, input_size, num_classes):
             super(model7, self).__init__()
 
-            self.name = 'Model 7 Split image-16, NoVal'
+            self.name = 'Model 7 - Split image-16'
             hidden_size = 285
 
             self.linear1 = nn.Linear(input_size // 16, hidden_size)
@@ -676,6 +678,7 @@ class model7(nn.Module):
             self.relu = nn.ReLU()
             self.dropout = nn.Dropout()
             self.loss = nn.NLLLoss()
+
     def forward(self, x):
             x = x.view(-1, 28, 28)
             x_u, x_d = torch.split(x, 14, dim=1)
@@ -763,7 +766,6 @@ class model7(nn.Module):
             out44 = self.linear1(x_44)
             out44 = self.relu(out44)
 
-            # out = torch.cat((torch.cat((out1, out2),1), torch.cat((out3, out4),1)), 1)
             out = torch.cat((out11, out12, out13, out14, out21, out22, out23, out24, out31, out32, out33, out34, out41, out42, out43, out44), 1)
             out = self.linear6(out)
             out = Func.log_softmax(out)

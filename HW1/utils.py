@@ -1,8 +1,9 @@
 import matplotlib.pyplot as plt
+import torch
 
 def fig_plot(results, export_plot=False):
     # Plot results
-    x = range(len(results['Train error']))
+    x = range(1, 1+len(results['Train error']))
     fig, ax = plt.subplots(2, 1, sharex=True)
     ax[0].plot(x, results['Train loss'], label='Training-set')
     ax[0].plot(x, results['Validation loss'], label='Validation-set')
@@ -18,37 +19,28 @@ def fig_plot(results, export_plot=False):
     ax[1].grid(axis='both', which='both')
     ax[1].set_title('Error vs. Epochs')
 
-    # fig.subplots_adjust(top=0.80,bottom=0.2)
     fig.get_axes()[0].annotate(results['Name'], (0.5, 0.95),
                                xycoords='figure fraction', ha='center',
                                fontsize=16
                                )
-    # fig.suptitle(results['Name'])
-    # fig.tight_layout(pad=0.25)
+
 
     if export_plot:
-        fig.savefig('./results/' + results['Name'])
+        fig.savefig('./results/' + results['Name']+'.png')
 
     return fig
-    # plt.imsave('1.png', fig)
 
-    # fig, ax = plt.subplots(2, 1, sharex=True)
-    # ax[0].plot(range(num_epochs), train_loss_log, label='Training-set')
-    # ax[0].plot(range(num_epochs), validation_loss_log, label='Validation-set')
-    # ax[0].set_ylabel('Loss')
-    # ax[0].legend(loc='best')
-    # ax[0].grid(axis='both', which='both')
-    # ax[0].set_title('Loss vs. Epochs')
-    # ax[1].plot(range(num_epochs), train_error_log, label='Training-set')
-    # ax[1].plot(range(num_epochs), validation_error_log, label='Validation-set')
-    # ax[1].set_ylabel('Error [%]')
-    # ax[1].set_xlabel('Epoch')
-    # ax[1].legend(loc='best')
-    # ax[1].grid(axis='both', which='both')
-    # ax[1].set_title('Error vs. Epochs')
-    #
-    # # fig.subplots_adjust(top=0.80,bottom=0.2)
-    # fig.suptitle(model.name)
-    # fig.tight_layout(pad=0.25)
-    #
-    # # plt.imsave('1.png', fig)
+def save_checkpoint(model, optimizer, filepath):
+    state = {
+        'state_dict': model.state_dict(),
+        'optimizer': optimizer.state_dict()
+    }
+    torch.save(state, filepath)
+
+def load_checkpoint(model, optimizer, filepath):
+    # "lambda" allows to load the model on cpu in case it is saved on gpu
+    state = torch.load(filepath, lambda storage, loc: storage)
+    model.load_state_dict(state['state_dict'])
+    optimizer.load_state_dict(state['optimizer'])
+
+    return model, optimizer
