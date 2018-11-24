@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as Func
+import torch.nn.init as init
 
 # Model
 class model1(nn.Module):

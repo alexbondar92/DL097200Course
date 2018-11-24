@@ -17,27 +17,20 @@ input_size = 784
 num_classes = 10
 num_epochs = 100
 
-batch_size = [128, 64, 32]
-# learning_rate = [1e-2, 1e-3, 1e-4]
+batch_size = [64, 32]
 learning_rate = [1e-3, 1e-4]
-weight_decay = [1e-4,1e-5, 1e-6]
+weight_decay = [1e-4,1e-5]
 
 # Datasets
 train_dataset = datasets.train_dataset()
 validation_dataset = datasets.validation_dataset()
 
-
-# Define the model of the network
-models = [models.model1(input_size, num_classes), models.model2(input_size, num_classes), models.model3(input_size, num_classes),
-          models.model4(input_size, num_classes), models.model5(input_size, num_classes), models.model6(input_size, num_classes),
-          models.model7(input_size, num_classes)]
-
 if mode == 1:
-    models = models[0:2]
+    models = [1, 2]
 elif mode == 2:
-    models = models[2:5]
+    models = [3, 4, 5]
 elif mode == 3:
-    models = models[5:]
+    models = [6, 7]
 
 for bs in batch_size:
     # Dataset Loader (Input Pipeline)
@@ -51,7 +44,10 @@ for bs in batch_size:
 
     for wd in weight_decay:
         for lr in learning_rate:
-            for model in models:
+            for i in models:
+
+                model = utils.initialize_model(i)
+
                 if torch.cuda.is_available():
                     print('GPU detected - Enabling Cuda!')
                     model = model.cuda()

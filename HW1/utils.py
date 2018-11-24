@@ -1,6 +1,11 @@
 import matplotlib.pyplot as plt
 import torch
 
+import models
+
+input_size = 784
+num_classes = 10
+
 def fig_plot(results, export_plot=False):
     # Plot results
     x = range(1, 1+len(results['Train error']))
@@ -44,3 +49,19 @@ def load_checkpoint(model, optimizer, filepath):
     optimizer.load_state_dict(state['optimizer'])
 
     return model, optimizer
+
+def initialize_model(model_num):
+    if model_num == 1:
+        return models.model1(input_size, num_classes)
+    elif model_num == 2:
+        return models.model2(input_size, num_classes)
+    elif model_num == 3:
+        return models.model3(input_size, num_classes)
+    elif model_num == 4:
+        return models.model4(input_size, num_classes)
+    elif model_num == 5:
+        return models.model5(input_size, num_classes)
+    elif model_num == 6:
+        return models.model6(input_size, num_classes)
+    elif model_num == 7:
+        return models.model7(input_size, num_classes)
