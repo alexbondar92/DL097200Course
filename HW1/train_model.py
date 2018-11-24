@@ -17,8 +17,9 @@ input_size = 784
 num_classes = 10
 num_epochs = 100
 
-batch_size = [32, 64, 128]
-learning_rate = [1e-2, 1e-3, 1e-4]
+batch_size = [128, 64, 32]
+# learning_rate = [1e-2, 1e-3, 1e-4]
+learning_rate = [1e-3, 1e-4]
 weight_decay = [1e-4,1e-5, 1e-6]
 
 # Datasets
@@ -38,29 +39,27 @@ elif mode == 2:
 elif mode == 3:
     models = models[5:]
 
-for model in models:
+for bs in batch_size:
+    # Dataset Loader (Input Pipeline)
+    train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
+                                               batch_size=bs,
+                                               shuffle=True)
 
-    if torch.cuda.is_available():
-        print('GPU detected - Enabling Cuda!')
-        model = model.cuda()
-    else:
-        print('No GPU detected!')
+    validation_loader = torch.utils.data.DataLoader(dataset=validation_dataset,
+                                                    batch_size=bs,
+                                                    shuffle=False)
 
-    # Calculate number of model parameters
-    print('Model: {}, number of parameters = {}'.format(model.name, sum(p.numel() for p in model.parameters())))
-
-    for bs in batch_size:
-
-        # Dataset Loader (Input Pipeline)
-        train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
-                                                   batch_size=bs,
-                                                   shuffle=True)
-
-        validation_loader = torch.utils.data.DataLoader(dataset=validation_dataset,
-                                                        batch_size=bs,
-                                                        shuffle=False)
+    for wd in weight_decay:
         for lr in learning_rate:
-            for wd in weight_decay:
+            for model in models:
+                if torch.cuda.is_available():
+                    print('GPU detected - Enabling Cuda!')
+                    model = model.cuda()
+                else:
+                    print('No GPU detected!')
+
+                # Calculate number of model parameters
+                print('Model: {}, number of parameters = {}'.format(model.name, sum(p.numel() for p in model.parameters())))
 
                 run_name = "{}, lr={}, wd={}, bs={}".format(model.name, lr, wd, bs)
                 file_path = os.path.join(save_dir,run_name + '.pkl')
