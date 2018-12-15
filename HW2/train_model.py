@@ -54,7 +54,7 @@ for bs in batch_size:
 
         criterion = model.loss
         optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-        #TODO: CHECK OTHER TYPES OF SCHEDULER!!
+        #TODO: CHECK OTHER TYPES OF SCHEDULER!!  https://pytorch.org/docs/stable/optim.html
         lr_scheduler = LRscheduler.ReduceLROnPlateau(optimizer)
 
         # Load model parameters and optimizer condition if available
