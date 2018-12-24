@@ -7,6 +7,7 @@ import os
 
 import datasets
 import utils
+import models
 
 save_dir = './saved models/'
 
@@ -38,7 +39,8 @@ for bs in batch_size:
                                               shuffle=False)
 
     for lr in learning_rate:
-        model = utils.initialize_model(model_num)
+#        model = utils.initialize_model(model_num)
+        model = models.model2()
 
         if torch.cuda.is_available():
             print('GPU detected - Enabling Cuda!')
