@@ -1,22 +1,29 @@
-#TODO: THIS FILE NEEDS TO BE UPDATED!!
-
 import torch
-
+import torch.optim.lr_scheduler as LRscheduler
 import datasets
-import models
+import utils
 
 # Parameters
 input_size = 784
 num_classes = 10
 
 # Model you wish to evaluate
-file_path = r'./saved models/best model/Model 4 - Split image-16, lr=0.001, wd=0.0001, bs=64.pkl'
-model_name = file_path.split('best model/')[1]
+file_path = r'./saved models/Model 5 - DenseNet, lr=0.001, ss=1, gm=0.1 , bs=64.pkl'
+model_name = file_path.split('/')[1]
 model_name = model_name.split('.pkl')[0]
 
 state = torch.load(file_path,lambda storage, loc: storage)
-model = models.model4(input_size, num_classes)
-model.load_state_dict(state)
+
+model = utils.initialize_model(3)
+
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+
+
+# Decay LR by a factor of 0.1 every 7 epochs
+# lr_scheduler = LRscheduler.StepLR(optimizer, step_size=ss, gamma=gm)
+# TODO: CHECK OTHER TYPES OF SCHEDULER!!  https://pytorch.org/docs/stable/optim.html
+lr_scheduler = LRscheduler.ReduceLROnPlateau(optimizer, eps=1e-3)
+model, optimizer = utils.load_checkpoint(model, optimizer, lr_scheduler, file_path)
 
 
 if torch.cuda.is_available():
@@ -30,7 +37,7 @@ test_dataset = datasets.test_dataset()
 
 # Dataset Loader (Input Pipeline)
 test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
-                                          batch_size=256,
+                                          batch_size=64,
                                           shuffle=False)
 # Test the Model
 correct = 0
@@ -51,4 +58,5 @@ for images, labels in test_loader:
     total += labels.size(0)
     correct += (predicted == labels).sum()
 
-print('Accuracy of the model - {} on the test set: {}'.format(model_name, 100 * int(correct) / total))
+
+print('Accuracy of the model - {} on the test set: {:.2f}'.format(model_name, 100 * float(correct)/total))
