@@ -1,0 +1,13 @@
+Sentence wit temperature = 0.5:
+buy low cell high is the <unk> of the <unk> of the <unk> <unk> <unk> 
+<unk> <unk> <unk> <unk> <unk> <unk> 
+it 's not a kind of <unk> 
+
+Sentence wit temperature = 1.0:
+buy low cell high is the <unk> rainbow badly since the white house gave a rolling expensive center of the voice line 
+the company had so far the <unk> 
+
+Sentence wit temperature = 2:
+buy low cell high is the odd sort in contrary tally civil increases and says brown attorney <unk> tour did involved in appeals stocks best no wall near court 
+
+

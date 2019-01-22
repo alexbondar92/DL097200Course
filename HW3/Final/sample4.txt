@@ -1,0 +1,12 @@
+Sentence wit temperature = 0.5:
+buy low cell high is the <unk> <unk> <unk> 
+with the <unk> of the <unk> <unk> <unk> a <unk> <unk> <unk> <unk> <unk> <unk> <unk> <unk> <unk> the <unk> 
+
+Sentence wit temperature = 1.0:
+buy low cell high is the key an rate 
+the work say that if <unk> officials said it 's a valuable platform and the court would use their deduction 
+
+Sentence wit temperature = 2:
+buy low cell high is the deferred coach decided review in green price vice solid good statistics and expected contras from said gains during oil has developed orders 
+current 
+
